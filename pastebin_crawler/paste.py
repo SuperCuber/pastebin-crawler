@@ -3,6 +3,7 @@ import arrow
 
 @dataclass
 class Pastebin:
+    id: str
     title: str
     author: str
     content: str

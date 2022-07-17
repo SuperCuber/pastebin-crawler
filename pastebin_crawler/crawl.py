@@ -1,30 +1,42 @@
+from typing import List
 import requests
 import lxml.html as html
 import arrow
 
 from .paste import Pastebin
 
-BASE_URL = "https://pastebin.com"
+BASE_URL = "https://pastebin.com/"
 
-def crawl():
-    response = requests.get(BASE_URL + "/")
+def crawl(should_crawl=lambda _: True) -> List[Pastebin]:
+    """
+    Crawl pastebin.com's latest public pastes
+
+    :param should_crawl:
+        Optional: a function that takes a paste id and returns
+        whether its contents should be crawled
+    :returns: a list of Pastebin objects
+    """
+    response = requests.get(BASE_URL)
     doc = html.document_fromstring(response.text)
-    pastes = extract_new_pastes_links(doc)
-    print(pastes)
+    paste_ids = _extract_new_pastes_links(doc)
 
-    for paste_url in pastes:
-        crawl_paste(paste_url)
+    pastes = []
+    for paste_id in paste_ids:
+        if should_crawl(paste_id):
+            pastes.append(_crawl_paste(paste_id))
+    return pastes
 
-def extract_new_pastes_links(doc):
+def _extract_new_pastes_links(doc):
     new_posts = doc.cssselect(".sidebar__menu a")
-    return [post.attrib["href"] for post in new_posts]
+    return [post.attrib["href"][1:]
+            for post in new_posts]
 
-def crawl_paste(paste_url):
-    response = requests.get(BASE_URL + paste_url)
+def _crawl_paste(paste_id):
+    response = requests.get(BASE_URL + paste_id)
     doc = html.document_fromstring(response.text)
 
     title = doc.cssselect(".info-top h1")[0].text
     author = doc.cssselect(".username a")[0].text
     date = arrow.get(doc.cssselect(".date span")[0].text, "MMM DD[th], YYYY")
-    content = requests.get(BASE_URL + "/raw" + paste_url).text
-    print(Pastebin(title=title, author=author, date=date, content=content))
+    content = requests.get(BASE_URL + "raw/" + paste_id).text
+    return Pastebin(id=paste_id, title=title, author=author, date=date, content=content)
