@@ -4,6 +4,8 @@ from pymongo.mongo_client import MongoClient
 
 @dataclass
 class Pastebin:
+    """Represents a pastebin crawled from pastebin.com with all of its associated data"""
+
     id: str
     title: str | None
     author: str | None
@@ -11,6 +13,7 @@ class Pastebin:
     date: arrow.Arrow
 
     def to_mongo_object(self) -> dict:
+        """Transform the dataclass into a dict ready to insert into mongodb"""
         res = asdict(self)
         res["date"] = res["date"].datetime
         return res
