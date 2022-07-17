@@ -8,4 +8,4 @@ RUN pip install -r requirements.txt
 # App
 COPY . .
 # -u forces the output to display as soon as its printed
-CMD ["python3", "-u", "app.py"]
+ENTRYPOINT ["python3", "-u", "app.py"]

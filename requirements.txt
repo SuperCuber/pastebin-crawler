@@ -2,3 +2,4 @@ requests == 2.*
 lxml == 4.*
 arrow == 1.*
 cssselect == 1.*
+pymongo == 4.*
